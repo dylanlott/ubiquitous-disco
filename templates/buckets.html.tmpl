@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="stylesheet" href="https://unpkg.com/mvp.css@1.12/mvp.css">
+</head>
+<body>
+
+<h1>Buckets</h1>
+
+{{ if .Buckets }}
+    {{ range $key, $value := .Buckets }}
+    <li><strong>{{ $key }}</strong>: {{ $value }}</li>
+    {{ end }}
+{{end}}
+
+</body>
+</html>
