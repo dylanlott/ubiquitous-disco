@@ -42,6 +42,19 @@ func main() {
 		t.ExecuteTemplate(w, "index.html.tmpl", data)
 	})
 
+	http.HandleFunc("/buckets", func(w http.ResponseWriter, r *http.Request) {
+		data := map[string]interface{}{}
+		buckets, err := client.BucketsAPI().GetBuckets(context.Background())
+		if err != nil {
+			w.Write([]byte(fmt.Sprintf("failed to get buckets: %s", err)))
+			return
+		}
+		for _, b := range *buckets {
+			data[b.Name] = b
+		}
+		t.ExecuteTemplate(w, "buckets.html.tmpl", map[string]interface{}{"Buckets": data})
+	})
+
 	log.Println("listening on", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }
