@@ -3,12 +3,8 @@ package alerts
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
 	"sync"
 	"time"
-
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 )
 
 // Alerts is a package for creating a monitoring a set of Monitors.
@@ -28,23 +24,24 @@ type Monitor struct {
 	Interval time.Duration
 }
 
-// Alerts are called when a Check returns false.
-// Alerts can be called multiple times.
-// Alerts can't fail, by design, but they could log if needed.
+// Alert is called when a Check returns false.
+// * Alerts can be called multiple times.
+// * Alerts can't fail, by design, but they could log if needed.
 type Alert func(ctx context.Context)
 
-// Checks run and return a bool and an error.
-// A check can pass and still return an error.
+// Check runs and returns a bool and an error.
+// * A check can pass and still return an error, e.g. degraded service
 type Check func(ctx context.Context) (bool, error)
 
 // Siren is responsible for starting, restarting, and stopping
-// a set of Monitors.
+// a set of Monitors. It interacts with the HTTP wrapper to become the
+// Monitors resource.
 type Siren struct {
 	sync.Mutex
 	Monitors []*Monitor
 }
 
-// Adds a Monitor to the Siren.
+// Add adds a Monitor to the Siren and starts the Monitor.
 func (s *Siren) Add(ctx context.Context, mon *Monitor) error {
 	s.Lock()
 	s.Monitors = append(s.Monitors, mon)
@@ -57,9 +54,14 @@ func (s *Siren) Add(ctx context.Context, mon *Monitor) error {
 
 // Run starts a monitor and listens for context cancellations
 func (m *Monitor) Run(ctx context.Context) error {
+	// initialize the monitor
+	if err := m.Init(); err != nil {
+		return fmt.Errorf("failed to initialize: %+v", err)
+	}
+
+	// start running the monitor
 	for {
-		// run check every mon.Interval
-		time.Sleep(m.Interval)
+		// run check once at the beginning and then every mon.Interval
 		ok, err := m.Check(ctx)
 		if !ok {
 			// alert when check fails
@@ -67,48 +69,12 @@ func (m *Monitor) Run(ctx context.Context) error {
 			// break out of the loop and return our reason for failure
 			return err
 		}
+		time.Sleep(m.Interval)
 	}
 }
 
-///////////////////////////
-// INFLUXDB IMPLEMENTATION
-///////////////////////////
-
-// InfluxClient holds methods for querying it and creating Alerts.
-type InfluxClient struct {
-	client influxdb2.Client
-}
-
-// Creates a new InfluxDB client or returns an error.
-func NewInfluxClient(ctx context.Context) (*InfluxClient, error) {
-	influxURL := os.Getenv("INFLUX_URL")
-	influxToken := os.Getenv("INFLUX_TOKEN")
-	client := influxdb2.NewClient(influxURL, influxToken)
-
-	go func(c context.Context) {
-		<-c.Done()
-		log.Printf("context cancellation detected")
-		// TODO: Handle client closure correctly
-		// defer client.Close()
-	}(ctx)
-
-	return &InfluxClient{
-		client: client,
-	}, nil
-}
-
-// Create makes a new Monitor on the given DataSource.
-func (i *InfluxClient) Create(ctx context.Context, query string) (*Monitor, error) {
-	org := ""
-	api := i.client.QueryAPI(org)
-	api.Query(ctx, query)
-	m := &Monitor{
-		Alert: func(ctx context.Context) {
-			log.Printf("alerted")
-		},
-		Check: func(ctx context.Context) (bool, error) {
-			return false, fmt.Errorf("not impl")
-		},
-	}
-	return m, nil
+// Init validates the monitor's configuration and prepares it for execution.
+func (m *Monitor) Init() error {
+	// for right now, this just returns nil
+	return nil
 }
