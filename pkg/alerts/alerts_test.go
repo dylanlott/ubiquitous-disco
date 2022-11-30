@@ -15,7 +15,7 @@ func TestAlerts(t *testing.T) {
 	is.NoErr(err)
 
 	query := `from(bucket: "growmon")
-	|> range(start: -72h, stop: now())
+	|> range(start: -10000, stop: now())
 	|> filter(fn: (r) => r["_measurement"] == "STBProto")
 	|> filter(fn: (r) => r["_field"] == "heat_index" or r["_field"] == "humidity" or r["_field"] == "temperature" or r["_field"] == "uuid")
 	|> filter(fn: (r) => r["UUID"] == "UUID: 00-00-01")
