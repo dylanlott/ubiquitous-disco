@@ -26,3 +26,8 @@ jobs:
 
     - name: Test
       run: go test -v ./...
+      env:
+        INFLUX_ORGID: ${{ secrets.INFLUX_ORGID }}
+        INFLUX_TOKEN: ${{ secrets.INFLUX_TOKEN }}
+        INFLUX_URL: ${{ secrets.INFLUX_URL }}
+        STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
