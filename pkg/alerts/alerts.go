@@ -2,7 +2,6 @@ package alerts
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 )
@@ -25,7 +24,7 @@ type Monitor struct {
 }
 
 // Alert is called when a Check returns false.
-// * Alerts can be called multiple times.
+// * Alerts may be called multiple times, but are usually called once.
 // * Alerts can't fail, by design, but they could log if needed.
 type Alert func(ctx context.Context)
 
@@ -54,11 +53,6 @@ func (s *Siren) Add(ctx context.Context, mon *Monitor) error {
 
 // Run starts a monitor and listens for context cancellations
 func (m *Monitor) Run(ctx context.Context) error {
-	// initialize the monitor
-	if err := m.Init(); err != nil {
-		return fmt.Errorf("failed to initialize: %+v", err)
-	}
-
 	// start running the monitor
 	for {
 		// run check once at the beginning and then every mon.Interval
@@ -71,10 +65,4 @@ func (m *Monitor) Run(ctx context.Context) error {
 		}
 		time.Sleep(m.Interval)
 	}
-}
-
-// Init validates the monitor's configuration and prepares it for execution.
-func (m *Monitor) Init() error {
-	// for right now, this just returns nil
-	return nil
 }
