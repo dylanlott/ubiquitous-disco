@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"gorm.io/datatypes"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -47,7 +48,7 @@ type Event struct {
 	Kind    string // alert, notification, warning, etc...
 	Message string // the message the Event contained, e.g. the alert's value
 	Source  string // foreign key to a Monitor.
-	Payload interface{}
+	Payload datatypes.JSON
 }
 
 ////////////////
@@ -63,6 +64,6 @@ func New() *gorm.DB {
 	if err != nil {
 		log.Fatalf("failed to get pg connection: %w", err)
 	}
-	db.AutoMigrate(&Monitor{}, &User{}, &Product{})
+	db.AutoMigrate(&Monitor{}, &User{}, &Product{}, &Event{})
 	return db
 }
