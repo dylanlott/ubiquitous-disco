@@ -20,6 +20,7 @@ type Monitor struct {
 
 	Name        string
 	LastChecked time.Time
+	LastStatus  string
 }
 
 // User refers to any user of the application that must be tracked.
@@ -62,7 +63,7 @@ func New() *gorm.DB {
 	dsn := os.Getenv("POSTGRES_DSN")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("failed to get pg connection: %w", err)
+		log.Fatalf("failed to get pg connection: %v", err)
 	}
 	db.AutoMigrate(&Monitor{}, &User{}, &Product{}, &Event{})
 	return db
