@@ -34,8 +34,8 @@ func main() {
 		port = "8080"
 	}
 
+	// get a new Gorm DB
 	gdb := db.New()
-	log.Printf("gdb: %+v", gdb)
 
 	influxURL := os.Getenv("INFLUX_URL")
 	influxToken := os.Getenv("INFLUX_TOKEN")
@@ -58,7 +58,6 @@ func main() {
 
 	// charge is pinged by the Checkout route's credit card form
 	http.HandleFunc("/charge", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("charge hit: %+v", r.Form)
 		stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 
 		// Token is created using Stripe Checkout or Elements!
@@ -109,6 +108,6 @@ func main() {
 		t.ExecuteTemplate(w, "buckets.html.tmpl", map[string]interface{}{"Buckets": data})
 	})
 
-	log.Println("listening on", port)
+	log.Println("grow is listening on", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }
