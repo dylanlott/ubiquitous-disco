@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/fly-apps/go-example/pkg/db"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/stripe/stripe-go/v73"
 	"github.com/stripe/stripe-go/v73/charge"
@@ -32,6 +33,9 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+
+	gdb := db.New()
+	log.Printf("gdb: %+v", gdb)
 
 	influxURL := os.Getenv("INFLUX_URL")
 	influxToken := os.Getenv("INFLUX_TOKEN")
