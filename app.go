@@ -9,9 +9,12 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/fly-apps/go-example/pkg/alerts"
+	"github.com/fly-apps/go-example/pkg/db"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/stripe/stripe-go/v73"
 	"github.com/stripe/stripe-go/v73/charge"
+	"gorm.io/gorm"
 )
 
 // Config holds config values for the application
@@ -20,6 +23,14 @@ type Config struct {
 	InfluxURL   string
 	InfluxToken string
 	TemplateDir string
+}
+
+// Server holds all of the relevant pieces together
+// for our monitoring service.
+type Server struct {
+	db     *gorm.DB
+	influx influxdb2.Client
+	siren  *alerts.Siren
 }
 
 //go:embed templates/*
@@ -33,10 +44,24 @@ func main() {
 		port = "8080"
 	}
 
+	// connect to postgres through gorm
+	gdb := db.New()
+
+	// connect to influx
 	influxURL := os.Getenv("INFLUX_URL")
 	influxToken := os.Getenv("INFLUX_TOKEN")
 	client := influxdb2.NewClient(influxURL, influxToken)
 	defer client.Close()
+
+	// make a new server
+	// TODO: wire up our handlers and serve HTTP from Server struct
+	_ = &Server{
+		db:     gdb,
+		influx: client,
+		siren: &alerts.Siren{
+			Monitors: []*alerts.Monitor{},
+		},
+	}
 
 	hc, err := client.Health(context.Background())
 	if err != nil {
@@ -54,7 +79,6 @@ func main() {
 
 	// charge is pinged by the Checkout route's credit card form
 	http.HandleFunc("/charge", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("charge hit: %+v", r.Form)
 		stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 
 		// Token is created using Stripe Checkout or Elements!
@@ -105,6 +129,6 @@ func main() {
 		t.ExecuteTemplate(w, "buckets.html.tmpl", map[string]interface{}{"Buckets": data})
 	})
 
-	log.Println("listening on", port)
+	log.Println("grow is listening on", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }
