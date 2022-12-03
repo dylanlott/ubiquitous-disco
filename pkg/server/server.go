@@ -145,7 +145,17 @@ func (s *S) routes(t *template.Template) *http.ServeMux {
 		t.ExecuteTemplate(w, "buckets.html.tmpl", map[string]interface{}{"Buckets": data})
 	})
 
+	router.HandleFunc("/monitors", s.monitorHandler)
+
 	return router
+}
+
+// monitorHandler declares the whole monitor route
+func (s *S) monitorHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO: handle crud for routes here
+	w.WriteHeader(500)
+	w.Write([]byte("not impl"))
+	return
 }
 
 // tracing adds tracing to our API by wrapping requests and adding an X-Request-ID header.
