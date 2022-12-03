@@ -26,10 +26,18 @@ import (
 // key is used tracking context keys
 type key int
 
+// requestIDFunc should return a unique ID to key requests for tracing
+type requestIDFunc func() string
+
 const (
 	// requestIDKey is used for tracing
 	requestIDKey key = 0
 )
+
+// nextRequestID is an anonymous function that returns a unique string ID for requests
+var nextRequestID = func() string {
+	return fmt.Sprintf("%d", time.Now().UnixNano())
+}
 
 // S holds all of the relevant pieces together
 // for our monitoring service.
@@ -140,13 +148,8 @@ func (s *S) routes(t *template.Template) *http.ServeMux {
 	return router
 }
 
-// nextRequestID is an anonymous function that returns a unique string ID for requests
-var nextRequestID = func() string {
-	return fmt.Sprintf("%d", time.Now().UnixNano())
-}
-
 // tracing adds tracing to our API by wrapping requests and adding an X-Request-ID header.
-func tracing(nextRequestID func() string) func(http.Handler) http.Handler {
+func tracing(nextRequestID requestIDFunc) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			requestID := r.Header.Get("X-Request-Id")
