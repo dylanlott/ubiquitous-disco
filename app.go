@@ -11,10 +11,11 @@ import (
 
 	"github.com/fly-apps/go-example/pkg/alerts"
 	"github.com/fly-apps/go-example/pkg/db"
+	"github.com/fly-apps/go-example/pkg/server"
+
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/stripe/stripe-go/v73"
 	"github.com/stripe/stripe-go/v73/charge"
-	"gorm.io/gorm"
 )
 
 // Config holds config values for the application
@@ -23,14 +24,6 @@ type Config struct {
 	InfluxURL   string
 	InfluxToken string
 	TemplateDir string
-}
-
-// Server holds all of the relevant pieces together
-// for our monitoring service.
-type Server struct {
-	db     *gorm.DB
-	influx influxdb2.Client
-	siren  *alerts.Siren
 }
 
 //go:embed templates/*
@@ -55,7 +48,7 @@ func main() {
 
 	// make a new server
 	// TODO: wire up our handlers and serve HTTP from Server struct
-	_ = &Server{
+	srv = &server.S{
 		db:     gdb,
 		influx: client,
 		siren: &alerts.Siren{
