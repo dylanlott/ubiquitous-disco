@@ -3,8 +3,10 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/fly-apps/go-example/pkg/db"
+
 	"github.com/gorilla/mux"
 )
 
@@ -42,12 +44,20 @@ func (s *S) monitorHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case http.MethodPut:
 		vars := mux.Vars(r)
-		if v, ok := vars["id"]; ok {
+		if id, ok := vars["id"]; ok {
 			var m *db.Monitor
 			if err := json.NewDecoder(r.Body).Decode(&m); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
+
+			// NB: respect only route param id to prevent mismatched updates
+			d, err := strconv.ParseInt(id, 10, 64)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			m.ID = uint(d)
 
 			tx := s.db.Save(&m)
 			if tx.Error != nil {
@@ -60,7 +70,6 @@ func (s *S) monitorHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		http.Error(w, "must provide id", http.StatusBadRequest)
 		return
-
 	case http.MethodDelete:
 		vars := mux.Vars(r)
 		if v, ok := vars["id"]; ok {
