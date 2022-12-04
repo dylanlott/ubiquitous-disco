@@ -9,13 +9,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/fly-apps/go-example/pkg/alerts"
-	"github.com/fly-apps/go-example/pkg/db"
+	"github.com/gorilla/mux"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/stripe/stripe-go/v73"
 	"github.com/stripe/stripe-go/v73/charge"
-
-	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"gorm.io/gorm"
+
+	"github.com/fly-apps/go-example/pkg/alerts"
+	"github.com/fly-apps/go-example/pkg/db"
 )
 
 // key is used tracking context keys
@@ -77,8 +78,8 @@ func (s *S) Serve() error {
 }
 
 // routes muxes the templates with the handlers and returns the muxer
-func (s *S) routes(t *template.Template) *http.ServeMux {
-	router := http.NewServeMux()
+func (s *S) routes(t *template.Template) *mux.Router {
+	router := mux.NewRouter()
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		hc, err := s.influx.Health(context.Background())
 		if err != nil {
@@ -142,6 +143,7 @@ func (s *S) routes(t *template.Template) *http.ServeMux {
 	})
 
 	router.HandleFunc("/monitors", s.monitorHandler)
+	router.HandleFunc("/monitors/{id}", s.monitorHandler)
 
 	return router
 }
