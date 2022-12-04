@@ -1,8 +1,3 @@
-// @Title
-// @Description
-// @Author
-// @Update
-
 package server
 
 import (
@@ -65,7 +60,7 @@ func New(t *template.Template, addr string) (*S, error) {
 	s.influx = client
 
 	// make a new logger
-	logger := log.New(os.Stdout, "http: ", log.LstdFlags)
+	logger := log.New(os.Stdout, "api: ", log.LstdFlags)
 
 	// start a new http server with logging and tracing
 	s.srv.Handler = tracing(nextRequestID)(logging(logger)(s.routes(t)))
@@ -75,6 +70,7 @@ func New(t *template.Template, addr string) (*S, error) {
 }
 
 // Serve listens at the configured address
+// TODO: Handle context cancellation and graceful shutdown
 func (s *S) Serve() error {
 	log.Printf("listening at %s", s.srv.Addr)
 	return s.srv.ListenAndServe()

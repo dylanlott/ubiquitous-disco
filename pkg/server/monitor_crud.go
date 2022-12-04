@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/fly-apps/go-example/pkg/db"
@@ -12,40 +11,34 @@ import (
 func (s *S) monitorHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		result := s.db.Find(&db.Monitor{})
+		// define an empty list of monitors
+		var monitors []*db.Monitor
+		// find will mutate the monitors
+		result := s.db.Find(&monitors)
 		if result.Error != nil {
-			w.Write([]byte(fmt.Sprintf("failed to get monitors from DB: %s", result.Error)))
+			http.Error(w, result.Error.Error(), http.StatusBadRequest)
 			return
 		}
 
-		rows, err := result.Rows()
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(fmt.Sprintf("failed to get monitor rows: %s", err)))
-			return
-		}
-
-		var m *db.Monitor
-		monitors := []*db.Monitor{}
-		for rows.Next() {
-			if err := rows.Scan(&m); err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte(fmt.Sprintf("failed to get monitor rows: %s", err)))
-				return
-			}
-		}
-
-		b, err := json.Marshal(monitors)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(fmt.Sprintf("failed to marshal json: %s", err)))
-			return
-		}
-
-		w.WriteHeader(200)
-		w.Write(b)
+		// encode the pointer to monitors
+		json.NewEncoder(w).Encode(&monitors)
 		return
 	case http.MethodPost:
+		var mon *db.Monitor
+		if err := json.NewDecoder(r.Body).Decode(&mon); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// NB: Create function mutates `mon`
+		tx := s.db.Create(&mon)
+		if tx.Error != nil {
+			http.Error(w, tx.Error.Error(), http.StatusBadRequest)
+			return
+		}
+
+		json.NewEncoder(w).Encode(mon)
+		return
 	case http.MethodPut:
 	case http.MethodDelete:
 	default:
