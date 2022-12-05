@@ -46,8 +46,8 @@ func (i *InfluxClient) create(ctx context.Context, query string) (*Monitor, erro
 	}
 	api := i.client.QueryAPI(orgID) // TODO: get from env?
 	m := &Monitor{
-		Alert: func(ctx context.Context) {
-			log.Printf("ERROR: monitor alerted")
+		Alert: func(ctx context.Context, err error) {
+			log.Printf("ERROR: monitor alerted: %+v", err)
 		},
 		Interval: time.Minute * 15,
 		Check: func(ctx context.Context) (bool, error) {

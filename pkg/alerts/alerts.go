@@ -24,12 +24,15 @@ type Monitor struct {
 }
 
 // Alert is called when a Check returns false.
+// * Alerts take a context and an error which gives access to requestIDs
+// and tracing functions as well as the cause of the failed check.
 // * Alerts may be called multiple times, but are usually called once.
-// * Alerts can't fail, by design, but they could log if needed.
-type Alert func(ctx context.Context)
+// * Alerts can't fail, by design. If they're unsuccessful in creating
+// their notification, that must be determined by logs.
+type Alert func(ctx context.Context, err error)
 
 // Check runs and returns a bool and an error.
-// * A check can pass and still return an error, e.g. degraded service
+// * A check can pass and still return an error, e.g. degraded service.
 type Check func(ctx context.Context) (bool, error)
 
 // Siren is responsible for starting, restarting, and stopping
@@ -37,13 +40,13 @@ type Check func(ctx context.Context) (bool, error)
 // Monitors resource.
 type Siren struct {
 	sync.Mutex
-	Monitors []*Monitor
+	monitors []*Monitor
 }
 
 // Add adds a Monitor to the Siren and starts the Monitor.
 func (s *Siren) Add(ctx context.Context, mon *Monitor) error {
 	s.Lock()
-	s.Monitors = append(s.Monitors, mon)
+	s.monitors = append(s.monitors, mon)
 	s.Unlock()
 
 	go mon.Run(ctx)
@@ -52,6 +55,7 @@ func (s *Siren) Add(ctx context.Context, mon *Monitor) error {
 }
 
 // Run starts a monitor and listens for context cancellations
+// TODO: consider exponential backoff upon failed checks
 func (m *Monitor) Run(ctx context.Context) error {
 	// start running the monitor
 	for {
@@ -59,9 +63,7 @@ func (m *Monitor) Run(ctx context.Context) error {
 		ok, err := m.Check(ctx)
 		if !ok {
 			// alert when check fails
-			m.Alert(ctx)
-			// break out of the loop and return our reason for failure
-			return err
+			go m.Alert(ctx, err)
 		}
 		time.Sleep(m.Interval)
 	}
