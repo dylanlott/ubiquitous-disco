@@ -11,6 +11,7 @@ import (
 
 	"github.com/gorilla/mux"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/stripe/stripe-go/v73"
 	"github.com/stripe/stripe-go/v73/charge"
 	"gorm.io/gorm"
@@ -92,6 +93,8 @@ func (s *S) routes(t *template.Template) *mux.Router {
 		}
 		t.ExecuteTemplate(w, "index.html.tmpl", data)
 	})
+
+	router.Handle("/metrics", promhttp.Handler())
 
 	// charge is pinged by the Checkout route's credit card form
 	router.HandleFunc("/charge", func(w http.ResponseWriter, r *http.Request) {

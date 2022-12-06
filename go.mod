@@ -8,6 +8,7 @@ require (
 	github.com/influxdata/influxdb-client-go/v2 v2.11.0
 	github.com/influxdata/line-protocol v0.0.0-20210922203350-b1ad95c89adf // indirect
 	github.com/matryer/is v1.4.0
+	github.com/prometheus/client_golang v1.14.0
 	github.com/stripe/stripe-go/v73 v73.16.0
 	golang.org/x/crypto v0.3.0 // indirect
 	gorm.io/datatypes v1.0.7
