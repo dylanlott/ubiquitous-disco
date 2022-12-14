@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"embed"
 	"fmt"
 	"html/template"
 	"log"
@@ -44,8 +45,9 @@ type S struct {
 	srv    *http.Server
 }
 
-// New creates a new server and returns it
-func New(t *template.Template, addr string) (*S, error) {
+// New creates a new server with a given set of templates and static
+// embeds and returns it
+func New(t *template.Template, static embed.FS, addr string) (*S, error) {
 	s := &S{
 		db: db.New(),
 		srv: &http.Server{
@@ -64,7 +66,7 @@ func New(t *template.Template, addr string) (*S, error) {
 	logger := log.New(os.Stdout, "api: ", log.LstdFlags)
 
 	// start a new http server with logging and tracing
-	s.srv.Handler = tracing(nextRequestID)(logging(logger)(s.routes(t)))
+	s.srv.Handler = tracing(nextRequestID)(logging(logger)(s.routes(t, static)))
 
 	// connect to postgres through gorm
 	return s, nil
@@ -78,8 +80,13 @@ func (s *S) Serve() error {
 }
 
 // routes muxes the templates with the handlers and returns the muxer
-func (s *S) routes(t *template.Template) *mux.Router {
+func (s *S) routes(t *template.Template, static embed.FS) *mux.Router {
 	router := mux.NewRouter()
+
+	// serve static files
+	var staticFS = http.FS(static)
+	router.PathPrefix("/static").Handler(http.FileServer(staticFS))
+
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		hc, err := s.influx.Health(context.Background())
 		if err != nil {

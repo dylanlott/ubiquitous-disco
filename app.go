@@ -10,6 +10,9 @@ import (
 	"github.com/fly-apps/go-example/pkg/server"
 )
 
+//go:embed static/*
+var static embed.FS
+
 //go:embed templates/*
 var resources embed.FS
 
@@ -25,7 +28,7 @@ func main() {
 	}
 
 	// make a new server with templates and a listener address
-	srv, err := server.New(t, addr)
+	srv, err := server.New(t, static, addr)
 	if err != nil {
 		log.Fatalf("failed to create new server: %s", err)
 	}
