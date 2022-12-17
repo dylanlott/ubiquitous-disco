@@ -13,8 +13,6 @@ import (
 	"github.com/gorilla/mux"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/stripe/stripe-go/v73"
-	"github.com/stripe/stripe-go/v73/charge"
 	"gorm.io/gorm"
 
 	"github.com/fly-apps/go-example/pkg/alerts"
@@ -88,6 +86,7 @@ func (s *S) routes(t *template.Template, static embed.FS) *mux.Router {
 	var staticFS = http.FS(static)
 	router.PathPrefix("/static").Handler(http.FileServer(staticFS))
 
+	// index
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		hc, err := s.influx.Health(context.Background())
 		if err != nil {
@@ -103,34 +102,9 @@ func (s *S) routes(t *template.Template, static embed.FS) *mux.Router {
 
 	router.Handle("/metrics", promhttp.Handler())
 
-	// charge is pinged by the Checkout route's credit card form
-	router.HandleFunc("/charge", func(w http.ResponseWriter, r *http.Request) {
-		stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
-
-		// Token is created using Stripe Checkout or Elements!
-		// Get the payment token ID submitted by the form:
-		token := r.FormValue("stripeToken")
-
-		params := &stripe.ChargeParams{
-			// TODO: charge for correct amount
-			Amount: stripe.Int64(999),
-			// TODO: charge for quantity to allow multiple unit orders
-			Currency:    stripe.String(string(stripe.CurrencyUSD)),
-			Description: stripe.String("Example charge"),
-		}
-		params.SetSource(token)
-
-		ch, err := charge.New(params)
-		if err != nil {
-			w.WriteHeader(400)
-			w.Write([]byte(fmt.Sprintf("failed to charge: %+v", err)))
-			return
-		}
-
-		log.Printf("successfully charged: %+v", ch)
-
-		// redirect to ch.ReceiptURL
-		http.Redirect(w, r, ch.ReceiptURL, http.StatusMovedPermanently)
+	// product handles simple product pages
+	router.HandleFunc("/product", func(w http.ResponseWriter, r *http.Request) {
+		t.ExecuteTemplate(w, "product.html.tmpl", nil)
 	})
 
 	// checkout serves the credit card form
@@ -152,8 +126,20 @@ func (s *S) routes(t *template.Template, static embed.FS) *mux.Router {
 		t.ExecuteTemplate(w, "buckets.html.tmpl", map[string]interface{}{"Buckets": data})
 	})
 
+	// monitors
 	router.HandleFunc("/monitors", s.monitorHandler)
 	router.HandleFunc("/monitors/{id}", s.monitorHandler)
+
+	// customers
+	router.HandleFunc("/config", handleConfig)
+	router.HandleFunc("/create-customer", handleCreateCustomer) // ✅
+	router.HandleFunc("/create-subscription", handleCreateSubscription)
+	router.HandleFunc("/cancel-subscription", handleCancelSubscription)
+	router.HandleFunc("/update-subscription", handleUpdateSubscription)
+	router.HandleFunc("/invoice-preview", handleInvoicePreview)
+	router.HandleFunc("/subscriptions", handleListSubscriptions)
+	router.HandleFunc("/webhook", handleWebhook)
+	router.HandleFunc("/charge", handleCharge)
 
 	return router
 }
