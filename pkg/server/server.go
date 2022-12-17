@@ -132,7 +132,7 @@ func (s *S) routes(t *template.Template, static embed.FS) *mux.Router {
 
 	// customers
 	router.HandleFunc("/config", handleConfig)
-	router.HandleFunc("/create-customer", handleCreateCustomer) // ✅
+	router.HandleFunc("/create-customer", handleCreateCustomer)
 	router.HandleFunc("/create-subscription", handleCreateSubscription)
 	router.HandleFunc("/cancel-subscription", handleCancelSubscription)
 	router.HandleFunc("/update-subscription", handleUpdateSubscription)
