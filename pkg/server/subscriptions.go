@@ -37,12 +37,8 @@ func handleConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params := &stripe.PriceListParams{
-		LookupKeys: stripe.StringSlice([]string{"sample_basic", "sample_premium"}),
-	}
-
-	prices := make([]*stripe.Price, 0)
-
+	params := &stripe.PriceListParams{} // empty params means fetch all
+	prices := make([]*stripe.Price, 0)  // the Price is all of the info for the product
 	i := price.List(params)
 	for i.Next() {
 		prices = append(prices, i.Price())
@@ -66,11 +62,11 @@ func handleCreateCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req struct {
-		Email string `json:"email"`
+		Email    string `json:"email"`
+		Password string `json:"password"` // TODO: add password handling here
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeJSON(w, nil, err)
-		log.Printf("json.NewDecoder.Decode: %v", err)
 		return
 	}
 
@@ -81,7 +77,6 @@ func handleCreateCustomer(w http.ResponseWriter, r *http.Request) {
 	c, err := customer.New(params)
 	if err != nil {
 		writeJSON(w, nil, err)
-		log.Printf("customer.New: %v", err)
 		return
 	}
 

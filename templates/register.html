@@ -1,0 +1,256 @@
+<html>
+  <head>
+    <title>GrowAlert - Register</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/css/checkout.css">
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <section class="container">
+    <!-- Navigation-->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container px-4 px-lg-5">
+            <a class="navbar-brand" href="#!">GrowAlert</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                    <li class="nav-item"><a class="nav-link active" aria-current="page" href="#!">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#!">About</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <main>
+      <h1>Sign up for GrowAlert</h1>
+      <!-- <img src="https://picsum.photos/280/320?random=1" width="140" height="160" alt="stock image" /> -->
+
+      <p>
+        Unlimited monitoring, alerts, and more. Cancel anytime.
+      </p>
+
+      <!--  SIGNUP FORM  -->
+      <form id="signup-form">
+        <label>
+          Email
+          <input id="email" type="text" placeholder="Email address" value="" required />
+        </label>
+        <label>
+         Password 
+          <input id="password" type="password" placeholder="Password" value="" required />
+        </label>
+        <button type="submit">
+          Register
+        </button>
+      </form>
+
+      <hr>
+
+      <!--  PRICE LIST  -->
+      <div class="prices">
+        <h1>Select a plan</h1>
+        <div id="price-list" class="price-list">
+          loading...
+        </div>
+      </div>
+
+      <hr>
+
+      <!--  PAYMENT FORM  -->
+      <h1>Subscribe</h1>
+      <p> Try the successful test card: <span>4242424242424242</span>. </p>
+      <p> Try the test card that requires SCA: <span>4000002500003155</span>. </p>
+      <p> Use any <i>future</i> expiry date, CVC, and 5 digit postal code. </p>
+      <hr />
+      <form id="subscribe-form">
+        <label>
+          Full name
+          <input type="text" id="name" value="Jenny Rosen" />
+        </label>
+        <div id="card-element">
+          <!-- the card element will be mounted here -->
+        </div>
+        <button type="submit">
+          Subscribe
+        </button>
+        <div id="messages"></div>
+      </form>
+
+    </main>
+    </section>
+  </body>
+  <script>
+
+// TODO: get publishable key from the /config endpoint
+const stripe = Stripe(
+'pk_test_51M47p8GxdKKUSt0mxoblFkBylys8NBvodGcmw0iEqYnElX0BHjyJVC5Flq9ht5uICN2HU0jqiDlmeQbEBYdYuktO00OnO3K2jW'
+);
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const signupForm = document.querySelector('#signup-form');
+  if (signupForm) {
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Grab reference to the emailInput. The email address
+      // entered will be passed to the server and used to create
+      // a customer. Email addresses do NOT uniquely identify
+      // customers in Stripe.
+      const emailInput = document.querySelector('#email');
+      // Grab a reference to the password for setting up logins to
+      // our website.
+      const passwordInput = document.querySelector('#password');
+
+      // Create a customer. This will also set a cookie on the server
+      // to simulate having a logged in user.
+      const {customer} = await fetch('/create-customer', {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: emailInput.value,
+          password: passwordInput.value,
+        }),
+      })
+      // .then(r => {
+      //   console.log(r.json())
+      // });
+
+      // Redirect to the pricing page.
+      // window.location.href = '/checkout';
+
+      // TODO: show pricing info here instead of redirecting to a page ✅
+      // TODO: HIDE the registration form after successful register and SHOW the price list
+      // TODO: subscribe after they've been signed up as a customer
+      // TODO: save the response secret and subID from the create-subscription call
+      // TODO: use that to fill out the payment form
+    });
+  } else {
+    alert("No sign up form with ID `signup-form` found on the page.");
+  }
+});
+
+// Fetch price data.
+const pricesDiv = document.querySelector('#price-list');
+
+fetch('/config')
+  .then((response) => response.json())
+  .then((data) => {
+    pricesDiv.innerHTML = '';
+    if(!data.prices) {
+      pricesDiv.innerHTML = `
+        <h3>No prices found</h3>
+
+        <p>This sample requires two prices, one with the lookup_key sample_basic and another with the lookup_key sample_premium</p>
+
+        <p>You can create these through the API or with the Stripe CLI using the provided seed.json fixture file with: <code>stripe fixtures seed.json</code>
+      `
+    }
+
+    data.prices.forEach((price) => {
+      pricesDiv.innerHTML += `
+        <div>
+          <span>
+            ${price.unit_amount / 100} ${price.currency} /
+            ${price.recurring.interval}
+          </span>
+          <button onclick="createSubscription('${price.id}')">Subscribe</button>
+        </div>
+      `;
+    });
+  })
+  .catch((error) => {
+    console.error('Error:', error);
+  });
+
+// createSubscription signs the user up for the subscription and then returns the 
+// necessary information to charge the user's card in the next step.
+const createSubscription = (priceId) => {
+  return fetch('/create-subscription', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      priceId: priceId,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      window.sessionStorage.setItem('subscriptionId', data.subscriptionId);
+      window.sessionStorage.setItem('clientSecret', data.clientSecret);
+      // window.location.href = '/subscribe.html';
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+}
+
+//////////////////
+// SUBSCRIPTION //
+//////////////////
+
+// helper method for displaying a status message.
+const setMessage = (message) => {
+  const messageDiv = document.querySelector('#messages');
+  messageDiv.innerHTML += "<br>" + message;
+}
+
+// Fetch public key and initialize Stripe.
+// let stripe, cardElement;
+let cardElement;
+
+fetch('/config')
+  .then((resp) => resp.json())
+  .then((resp) => {
+    // stripe = Stripe(resp.publishableKey);
+
+    const elements = stripe.elements();
+    cardElement = elements.create('card');
+    cardElement.mount('#card-element');
+  });
+
+// Extract the client secret query string argument. This is
+// required to confirm the payment intent from the front-end.
+const subscriptionId = window.sessionStorage.getItem('subscriptionId');
+const clientSecret = window.sessionStorage.getItem('clientSecret');
+// This sample only supports a Subscription with payment
+// upfront. If you offer a trial on your subscription, then
+// instead of confirming the subscription's latest_invoice's
+// payment_intent. You'll use stripe.confirmCardSetup to confirm
+// the subscription's pending_setup_intent.
+// See https://stripe.com/docs/billing/subscriptions/trials
+
+// Payment info collection and confirmation
+// When the submit button is pressed, attempt to confirm the payment intent
+// with the information input into the card element form.
+// - handle payment errors by displaying an alert. The customer can update
+//   the payment information and try again
+// - Stripe Elements automatically handles next actions like 3DSecure that are required for SCA
+// - Complete the subscription flow when the payment succeeds
+const subform = document.querySelector('#subscribe-form');
+subform.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const nameInput = document.getElementById('name');
+
+  // Create payment method and confirm payment intent.
+  stripe.confirmCardPayment(clientSecret, {
+    payment_method: {
+      card: cardElement,
+      billing_details: {
+        name: nameInput.value,
+      },
+    }
+  }).then((result) => {
+    if(result.error) {
+      setMessage(`Payment failed: ${result.error.message}`);
+    } else {
+      // Redirect the customer to their account page
+      setMessage('Success! Redirecting to your account.');
+      // window.location.href = '/account.html';
+    }
+  });
+});
+  </script>
+</html>
