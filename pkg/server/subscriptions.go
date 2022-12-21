@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/stripe/stripe-go/v72"
@@ -27,6 +28,10 @@ func init() {
 	// NB: Do not attach to S so that we never risk exposing keys
 	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
 }
+
+// UNIT_PRICE should eventually be fetched from Stripe but holds the unit price of
+// GRO-01 Monitors
+const UNIT_PRICE = 15000 // $150 per piece USD
 
 // NB: subscriptions uses cookies to track users and will need to be wired into
 // whatever we design for authentication
@@ -62,7 +67,9 @@ func handleCreateCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req struct {
-		Email    string `json:"email"`
+		// Name     string `json:"name"`
+		Email string `json:"email"`
+		// Phone    string `json:"phone"`
 		Password string `json:"password"` // TODO: add password handling here
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -70,8 +77,14 @@ func handleCreateCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: Check that they're not already registered in our system with email
+	// TODO: add password handling and user generation here
+
+	// make a basic 3 field customer in stripe
 	params := &stripe.CustomerParams{
 		Email: stripe.String(req.Email),
+		// Name:  stripe.String(req.Name),
+		// Phone: stripe.String(req.Phone),
 	}
 
 	c, err := customer.New(params)
@@ -304,30 +317,45 @@ func handleListSubscriptions(w http.ResponseWriter, r *http.Request) {
 // handleCharge is pinged by the Checkout route's credit card form.
 // TODO: make handleCharge use request body for handling amounts and quantities
 func handleCharge(w http.ResponseWriter, r *http.Request) {
-	// Token is created using Stripe Checkout or Elements!
-	// Get the payment token ID submitted by the form:
-	token := r.FormValue("stripeToken")
-
-	params := &stripe.ChargeParams{
-		// TODO: charge for correct amount
-		Amount: stripe.Int64(999),
-		// TODO: charge for quantity to allow multiple unit orders
-		Currency:    stripe.String(string(stripe.CurrencyUSD)),
-		Description: stripe.String("Example charge"),
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
 	}
-	params.SetSource(token)
+	var req struct {
+		Quantity string `json:"quantity"`
+		Token    string `json:"token"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, nil, err)
+		log.Printf("json.NewDecoder.Decode: %v", err)
+		return
+	}
+
+	log.Printf("charge request: %+v", req)
+
+	qty, err := strconv.Atoi(req.Quantity)
+	if err != nil {
+		writeJSON(w, nil, err)
+		log.Printf("failed to parse quantity: %v", err)
+		return
+	}
+
+	total := qty * UNIT_PRICE
+	params := &stripe.ChargeParams{
+		Amount:      stripe.Int64(int64(total)),
+		Currency:    stripe.String(string(stripe.CurrencyUSD)),
+		Description: stripe.String("GRO-01 Monitor"),
+	}
+	params.SetSource(req.Token)
 
 	ch, err := charge.New(params)
 	if err != nil {
 		w.WriteHeader(400)
 		w.Write([]byte(fmt.Sprintf("failed to charge: %+v", err)))
+		log.Printf("failed to charge card: %+v", err)
 		return
 	}
-
-	log.Printf("successfully charged: %+v", ch)
-
-	// redirect to ch.ReceiptURL
-	http.Redirect(w, r, ch.ReceiptURL, http.StatusMovedPermanently)
+	writeJSON(w, ch, nil)
 }
 
 func handleWebhook(w http.ResponseWriter, r *http.Request) {
