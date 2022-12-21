@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>GrowAlert - Register</title>
+  <title>GrowAlert - GRO-01 Subscription</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
     integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
   <link rel="stylesheet" href="/static/css/checkout.css">
@@ -13,7 +13,7 @@
 </head>
 
 <body>
-  <section class="container">
+  <section class="container-fluid">
     <!-- Navigation-->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container px-4 px-lg-5">
@@ -30,145 +30,84 @@
       </div>
     </nav>
     <main>
-      <h1>Sign up for GrowAlert</h1>
-      <p>
-        Unlimited monitoring, alerts, and more. Cancel anytime.
-      </p>
+      <div class="container-lg">
+        <div class="row">
+          <div class="col col-sm-12 col-md-6 col-lg-6">
+            <img class="card-img-top mb-5 mb-md-0" src="https://dummyimage.com/500x500/dee2e6/6c757d.jpg" alt="..." />
+          </div>
+          <div class="col product">
+            <form>
+              <div class="form-group col-sm-6 col-md-4 col-lg-4">
+                <div class="row align-items-center">
+                  <div class="col">
+                    <label for="quantity">How many GRO-01 Monitors do you want?</label>
+                    <input type="number" id="quantity" value="2" />
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col form-group m-4">
+            <h1>Subscription Plan</h1>
+            <h3>GRO Premium</h3>
+            <ul>
+              <li>Unlimited data retention and access</li>
+              <li>Unlimited data monitors</li>
+              <li>Unlimited monthly alerts</li>
+              <li>Email and phone alert options</li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col col-sm-12 col-md-4 col-lg-6">
+            <!--  PAYMENT FORM  -->
+            <!-- <p> Try the successful test card: <span>4242424242424242</span>. </p>
+            <p> Try the test card that requires SCA: <span>4000002500003155</span>. </p>
+            <p> Use any <i>future</i> expiry date, CVC, and 5 digit postal code. </p> -->
+            <form id="subscribe-form">
+              <h1>Payment Details</h1>
+              <label>
+                Full name
+                <input type="text" id="name" value="Jenny Rosen" />
+              </label>
 
-      <!--  SIGNUP FORM  -->
-      <form id="signup-form">
-        <label>
-          Email
-          <input id="email" type="text" placeholder="Email address" value="" required />
-        </label>
-        <label>
-          Password
-          <input id="password" type="password" placeholder="Password" value="" required />
-        </label>
-        <button type="submit">
-          Register
-        </button>
-      </form>
+              <label>
+                Email
+                <input id="email" type="text" placeholder="Email address" value="" required />
+              </label>
 
-      <hr>
+              <label>
+                Password
+                <input id="password" type="password" placeholder="Password" value="" required />
+              </label>
 
-      <!--  PRICE LIST  -->
-      <div class="prices">
-        <h1>Select a plan</h1>
-        <div id="price-list" class="price-list">
-          loading...
+              <div id="card-element">
+                <!-- the card element will be mounted here -->
+              </div>
+
+              <button type="submit">
+                Subscribe
+              </button>
+              <div id="messages"></div>
+            </form>
+          </div>
         </div>
       </div>
-
-      <hr>
-
-      <!--  PAYMENT FORM  -->
-      <h1>Subscribe</h1>
-      <p> Try the successful test card: <span>4242424242424242</span>. </p>
-      <p> Try the test card that requires SCA: <span>4000002500003155</span>. </p>
-      <p> Use any <i>future</i> expiry date, CVC, and 5 digit postal code. </p>
-      <hr />
-      <form id="subscribe-form">
-        <label>
-          Full name
-          <input type="text" id="name" value="Jenny Rosen" />
-        </label>
-        <div id="card-element">
-          <!-- the card element will be mounted here -->
-        </div>
-        <button type="submit">
-          Subscribe
-        </button>
-        <div id="messages"></div>
-      </form>
-
     </main>
   </section>
   <script>
-
-    // TODO: figure out how to reduce the calls to /config for this script (preferably to one call)
-    // TODO: get publishable key from the /config endpoint
+    // TODO: reduce the calls to /config for this script (preferably to one call)
     const stripe = Stripe(
+      // TODO: get publishable key from the /config endpoint
       'pk_test_51M47p8GxdKKUSt0mxoblFkBylys8NBvodGcmw0iEqYnElX0BHjyJVC5Flq9ht5uICN2HU0jqiDlmeQbEBYdYuktO00OnO3K2jW'
     );
+    const elements = stripe.elements();
 
-    document.addEventListener('DOMContentLoaded', async () => {
-      const signupForm = document.querySelector('#signup-form');
-      if (signupForm) {
-        signupForm.addEventListener('submit', async (e) => {
-          e.preventDefault();
-
-          // Grab reference to the emailInput. The email address
-          // entered will be passed to the server and used to create
-          // a customer. Email addresses do NOT uniquely identify
-          // customers in Stripe.
-          const emailInput = document.querySelector('#email');
-          // Grab a reference to the password for setting up logins to
-          // our website.
-          const passwordInput = document.querySelector('#password');
-
-          // Create a customer. This will also set a cookie on the server
-          // to simulate having a logged in user.
-          const { customer } = await fetch('/create-customer', {
-            method: 'post',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              email: emailInput.value,
-              password: passwordInput.value,
-            }),
-          })
-          // .then(r => {
-          //   console.log(r.json())
-          // });
-
-          // Redirect to the pricing page.
-          // window.location.href = '/checkout';
-
-          // TODO: show pricing info here instead of redirecting to a page ✅
-          // TODO: HIDE the registration form after successful register and SHOW the price list
-          // TODO: subscribe after they've been signed up as a customer
-          // TODO: save the response secret and subID from the create-subscription call
-          // TODO: use that to fill out the payment form
-        });
-      } else {
-        alert("No sign up form with ID `signup-form` found on the page.");
-      }
-    });
-
-    // Fetch price data.
-    const pricesDiv = document.querySelector('#price-list');
-
-    fetch('/config')
-      .then((response) => response.json())
-      .then((data) => {
-        pricesDiv.innerHTML = '';
-        if (!data.prices) {
-          pricesDiv.innerHTML = `
-        <h3>No prices found</h3>
-
-        <p>This sample requires two prices, one with the lookup_key sample_basic and another with the lookup_key sample_premium</p>
-
-        <p>You can create these through the API or with the Stripe CLI using the provided seed.json fixture file with: <code>stripe fixtures seed.json</code>
-      `
-        }
-
-        data.prices.forEach((price) => {
-          pricesDiv.innerHTML += `
-        <div>
-          <span>
-            ${price.unit_amount / 100} ${price.currency} /
-            ${price.recurring.interval}
-          </span>
-          <button onclick="createSubscription('${price.id}')">Subscribe</button>
-        </div>
-      `;
-        });
-      })
-      .catch((error) => {
-        console.error('Error:', error);
-      });
+    let cardElement;
+    cardElement = elements.create('card');
+    cardElement.mount('#card-element');
 
     // createSubscription signs the user up for the subscription and then returns the 
     // necessary information to charge the user's card in the next step.
@@ -184,18 +123,51 @@
       })
         .then((response) => response.json())
         .then((data) => {
+          console.log("create subscription: ", data);
           window.sessionStorage.setItem('subscriptionId', data.subscriptionId);
           window.sessionStorage.setItem('clientSecret', data.clientSecret);
-          // window.location.href = '/subscribe.html';
+          return data
         })
         .catch((error) => {
-          console.error('Error:', error);
+          console.error('create subscription error:', error);
         });
     }
 
-    //////////////////
-    // SUBSCRIPTION //
-    //////////////////
+    // createCustomer attempts to create a customer to attach the subscription to.
+    // if this succeeds, it creates them a valid user in our system.
+    const createCustomer = (email, password) => {
+      return fetch('/create-customer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password
+        }),
+      })
+        .then(res => res.json())
+        .then((data) => {
+          console.log('create customer response: ', data)
+          return data
+        })
+    }
+
+    const handleConfirmPayment = (name, clientSecret, cardElement) => {
+      // Create payment method and confirm payment intent. This confirms the subscription intent
+      return stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            name: name,
+          },
+        }
+      }).then((res) => {
+        console.log('confirmCardPayment response: ', res)
+        return res
+      })
+        .catch(err => console.error('handleConfirmPayment failed:', err))
+    }
 
     // helper method for displaying a status message.
     const setMessage = (message) => {
@@ -203,24 +175,6 @@
       messageDiv.innerHTML += "<br>" + message;
     }
 
-    // Fetch public key and initialize Stripe.
-    // let stripe, cardElement;
-    let cardElement;
-
-    fetch('/config')
-      .then((resp) => resp.json())
-      .then((resp) => {
-        // stripe = Stripe(resp.publishableKey);
-
-        const elements = stripe.elements();
-        cardElement = elements.create('card');
-        cardElement.mount('#card-element');
-      });
-
-    // Extract the client secret query string argument. This is
-    // required to confirm the payment intent from the front-end.
-    const subscriptionId = window.sessionStorage.getItem('subscriptionId');
-    const clientSecret = window.sessionStorage.getItem('clientSecret');
     // This sample only supports a Subscription with payment
     // upfront. If you offer a trial on your subscription, then
     // instead of confirming the subscription's latest_invoice's
@@ -235,28 +189,73 @@
     //   the payment information and try again
     // - Stripe Elements automatically handles next actions like 3DSecure that are required for SCA
     // - Complete the subscription flow when the payment succeeds
+
+    // NB: process quantity client side, but pricing _server_ side to prevent price manipulation.
+
     const subform = document.querySelector('#subscribe-form');
     subform.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const nameInput = document.getElementById('name');
 
-      // Create payment method and confirm payment intent.
-      stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: cardElement,
-          billing_details: {
-            name: nameInput.value,
-          },
-        }
-      }).then((result) => {
-        if (result.error) {
-          setMessage(`Payment failed: ${result.error.message}`);
-        } else {
-          // Redirect the customer to their account page
-          setMessage('Success! Redirecting to your account.');
-          // window.location.href = '/account.html';
-        }
-      });
+      const priceID = "price_1MG65uGxdKKUSt0mC7weZ3xT" // hard coded price ID for Gro standard plan
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const quantity = document.getElementById('quantity').value;
+
+      createCustomer(email, password)
+        .then(cust => {
+          console.log("subform: created customer: ", cust)
+          createSubscription(priceID)
+            .then((sub) => {
+              console.log('susbform: created subscription: ', sub)
+
+              // Extract the client secret query string argument. This is
+              // required to confirm the payment intent from the front-end.
+              const subscriptionId = window.sessionStorage.getItem('subscriptionId');
+              const clientSecret = window.sessionStorage.getItem('clientSecret');
+
+              handleConfirmPayment(name, clientSecret, cardElement)
+                .then((res) => {
+                  console.log('handleConfirmPayment after subscription: ', res)
+
+                  // charge them for monitors if they ordered more than zero
+                  if (quantity > 0) {
+                    stripe.createToken(cardElement)
+                      .then((res) => {
+                        console.log("createToken: res: ", res)
+                        if (res.error) {
+                          setMessage('failed to charge card for product')
+                          console.log('failed to charge: ', res.error)
+                          return
+                        }
+
+                        const token = res.token.id
+                        
+                        return fetch('/charge', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            token: token,
+                            quantity: quantity
+                          }),
+                        })
+                          .then(res => res.json())
+                          .then((data) => {
+                            console.log('create customer response: ', data)
+                            return data
+                          })
+                      })
+
+                  }
+
+
+                })
+
+            })
+        })
+
     });
   </script>
 </body>
