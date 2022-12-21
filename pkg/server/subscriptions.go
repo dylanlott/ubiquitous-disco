@@ -67,9 +67,7 @@ func handleCreateCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req struct {
-		// Name     string `json:"name"`
-		Email string `json:"email"`
-		// Phone    string `json:"phone"`
+		Email    string `json:"email"`
 		Password string `json:"password"` // TODO: add password handling here
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -83,8 +81,6 @@ func handleCreateCustomer(w http.ResponseWriter, r *http.Request) {
 	// make a basic 3 field customer in stripe
 	params := &stripe.CustomerParams{
 		Email: stripe.String(req.Email),
-		// Name:  stripe.String(req.Name),
-		// Phone: stripe.String(req.Phone),
 	}
 
 	c, err := customer.New(params)
@@ -330,8 +326,6 @@ func handleCharge(w http.ResponseWriter, r *http.Request) {
 		log.Printf("json.NewDecoder.Decode: %v", err)
 		return
 	}
-
-	log.Printf("charge request: %+v", req)
 
 	qty, err := strconv.Atoi(req.Quantity)
 	if err != nil {
