@@ -132,8 +132,8 @@ func (s *S) routes(t *template.Template, static embed.FS) *mux.Router {
 
 	// customers
 	router.HandleFunc("/config", handleConfig)
-	router.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
-		t.ExecuteTemplate(w, "register.html", nil)
+	router.HandleFunc("/premium", func(w http.ResponseWriter, r *http.Request) {
+		t.ExecuteTemplate(w, "premium.html", nil)
 	})
 	router.HandleFunc("/create-customer", handleCreateCustomer)
 	router.HandleFunc("/create-subscription", handleCreateSubscription)
