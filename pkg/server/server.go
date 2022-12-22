@@ -15,8 +15,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gorm.io/gorm"
 
-	"github.com/fly-apps/go-example/pkg/alerts"
-	"github.com/fly-apps/go-example/pkg/db"
+	"github.com/dylanlott/ubiquitous-disco/pkg/alerts"
+	"github.com/dylanlott/ubiquitous-disco/pkg/db"
 )
 
 // key is used tracking context keys
