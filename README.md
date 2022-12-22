@@ -160,7 +160,6 @@ Returns a Stripe charge object.
 {
   "id": "ch_XXX",
   "object": "charge",
-  // for the rest see https://stripe.com/docs/api/charges/object
 }
 ```
 

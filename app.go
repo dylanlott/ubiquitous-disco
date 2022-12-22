@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/fly-apps/go-example/pkg/server"
+	"github.com/dylanlott/ubiquitous-disco/pkg/server"
 )
 
 //go:embed static/*

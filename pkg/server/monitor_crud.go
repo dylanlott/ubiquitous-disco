@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/fly-apps/go-example/pkg/db"
+	"github.com/dylanlott/ubiquitous-disco/pkg/db"
 
 	"github.com/gorilla/mux"
 )
