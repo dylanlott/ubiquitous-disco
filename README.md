@@ -46,7 +46,6 @@ if they have ordered monitor devices, that is to say if the quantity is greater 
   - this charges the card info for the quantity of devices ordered.
   - if 0 are ordered, it does not get called.
 
-
 **For testing Stripe payments**:
 - Try the successful test card: `4242424242424242`.
 - Try the test card that requires SCA: `4000002500003155`.
@@ -154,8 +153,15 @@ Request
 ```
 
 Response
-```json
 
+Returns a Stripe charge object.
+
+```json
+{
+  "id": "ch_XXX",
+  "object": "charge",
+  // for the rest see https://stripe.com/docs/api/charges/object
+}
 ```
 
 ## structure and components
