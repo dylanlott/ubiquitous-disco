@@ -40,10 +40,39 @@ the monitors api powers the monitoring and alerting systems.
 
 the customers api powers the customer interactions such as subscriptions, purchases, and pricing information.
 
+#### subscribing a customer
+
+customers are subscribed to the system with combination of calls to Stripe and our own server. 
+we first must create a customer by POSTing to `/create-customer` and then we use the customer ID returned from that call to POST to `/create-subscription` which creates a Subscription object for the customer that is tied to their customer ID. 
+
+by this point, we are setup to bill them on a monthly basis but the custoemr has not yet been charged. 
+to charge them, the client confirms the payment with the secret and subscription ID returned by the `/create-subscription` request which will charge the card info provided for the subscription. 
+
+if they have ordered monitor devices, that is to say if the quantity is greater than 0, they will then be charged for the appropriate number of devices.
+
+> NB: The device price ID and the subscription ID are currently hard-coded.
+
+- step 1. create a customer - POST /create-customer
+  - this creates a cookie with the customer ID
+- step 2. create a subscription - POST /create-subscription
+  - this returns a clientSecret and a subscription ID which is necessary when confirming the payment in step 3.
+- step 3. confirm payment for subscription - `handleConfirmPayment` in `register.html`
+  - this charges the card info provided for the subscription.
+- step 4. confirm payment for devices - `/charge` request in `register.html`
+  - this charges the card info for the quantity of devices ordered.
+  - if 0 are ordered, it does not get called.
+
+
+**For testing Stripe payments**:
+- Try the successful test card: `4242424242424242`.
+- Try the test card that requires SCA: `4000002500003155`.
+- Use any _future_ expiry date, CVC, and 5 digit postal code.
+
 #### GET /config
 
 Returns the publishable key and the list of prices for the products.
 
+Response
 ```json
 {
     "publishableKey": "",
@@ -125,10 +154,27 @@ Request
 Response 
 ```json
 {
-    "subscriptionId": "sub_1MG6e3GxdKKUSt0m9X5e2KGG",
-    "clientSecret": "pi_3MG6e3GxdKKUSt0m0DZaSVEq_secret_VVLHq9cPGPOIK8Vg7LW35w6V9"
+    "subscriptionId": "sub_xxx",
+    "clientSecret": "pi_xxx"
 }
 ```
+
+#### POST /charge
+
+Request 
+```json
+{
+  "token": "",
+  "quantity": 1
+}
+```
+
+Response
+```json
+
+```
+
+#### POST 
 
 
 ## structure and components
