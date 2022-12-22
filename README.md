@@ -20,27 +20,11 @@ type Check func(ctx context.Context) (bool, error)
 
 The Monitor struct ties these two together with an Interval function. A Monitor runs its Check function every Interval and calls the Alert whenever it fails.
 
-## api
-
-the monitor has two main resources so far: monitors and customers.
-
-### monitors api 
-
-the monitors api powers the monitoring and alerting systems.
-
-#### POST /monitors
-
-#### GET /monitors
-
-#### PUT /monitors/:id
-
-#### DELETE /monitors/:id
-
-### customers api
+## customers api
 
 the customers api powers the customer interactions such as subscriptions, purchases, and pricing information.
 
-#### subscribing a customer
+### subscribing a customer
 
 customers are subscribed to the system with combination of calls to Stripe and our own server. 
 we first must create a customer by POSTing to `/create-customer` and then we use the customer ID returned from that call to POST to `/create-subscription` which creates a Subscription object for the customer that is tied to their customer ID. 
@@ -68,7 +52,7 @@ if they have ordered monitor devices, that is to say if the quantity is greater 
 - Try the test card that requires SCA: `4000002500003155`.
 - Use any _future_ expiry date, CVC, and 5 digit postal code.
 
-#### GET /config
+### GET /config
 
 Returns the publishable key and the list of prices for the products.
 
@@ -80,7 +64,7 @@ Response
 }
 ```
 
-#### POST /create-customer
+### POST /create-customer
 
 handleCreateCustomer makes a Stripe customer with the provided email. 
 this is the necessary first-step to interacting with our customers API and creates a `customer` cookie with the customer's ID as the value.
@@ -142,7 +126,7 @@ Response
 }
 ```
 
-#### POST /create-subscription
+### POST /create-subscription
 
 Request
 ```json
@@ -159,7 +143,7 @@ Response
 }
 ```
 
-#### POST /charge
+### POST /charge
 
 Request 
 ```json
@@ -173,9 +157,6 @@ Response
 ```json
 
 ```
-
-#### POST 
-
 
 ## structure and components
 `pkg/alerts` - the main alerting library. 
