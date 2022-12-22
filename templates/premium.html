@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>GrowAlert - GRO-01 Subscription</title>
+  <title>GrowAlert Premium</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css"
     integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
   <link rel="stylesheet" href="/static/css/checkout.css">
@@ -14,7 +14,7 @@
 
 <body>
   <section class="container-fluid">
-    <!-- Navigation-->
+    <!-- NAVIGATION -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
       <div class="container px-4 px-lg-5">
         <a class="navbar-brand" href="#!">GrowAlert</a>
@@ -29,82 +29,102 @@
         </div>
       </div>
     </nav>
+
+    <!-- MAIN -->
     <main>
       <div class="container-lg">
+        <div class="row">
+          <div class="jumbotron jumbotron-fluid">
+            <div class="container">
+              <h1 class="display-4">GRO Premium</h1>
+              <p class="lead">Grow operation monitoring and alerting in a compact, Wi-Fi enabled 📶 setup</p>
+            </div>
+          </div>
+        </div>
         <div class="row">
           <div class="col col-sm-12 col-md-6 col-lg-6">
             <img class="card-img-top mb-5 mb-md-0" src="https://dummyimage.com/500x500/dee2e6/6c757d.jpg" alt="..." />
           </div>
-          <div class="col product">
-            <form>
-              <div class="form-group col-sm-6 col-md-4 col-lg-4">
-                <div class="row align-items-center">
-                  <div class="col">
-                    <label for="quantity">How many GRO-01 Monitors do you want?</label>
-                    <input type="number" id="quantity" value="2" />
+          <div class="col col-sm-12 col-md-6 col-lg-6">
+            <div class="container">
+              <div class="row align-items-center">
+                <div class="card">
+                  <div class="card-body">
+                    <!-- SUBSCRIPTION INFORMATION -->
+                    <div class="col col-sm-12">
+                      <h1>GRO Premium</h1>
+                      <ul>
+                        <li>Unlimited data retention and access 📈</li>
+                        <li>Unlimited monitors 🚨</li>
+                        <li>Unlimited alerts 🗓️</li>
+                        <li>Email and phone alert options 📩</li>
+                      </ul>
+                    </div>
+                    <!-- QUANTITY -->
+                    <div class="col col-sm-12">
+                      <label for="quantity"><h4>GRO-01 Monitors</h4></label>
+                      <input type="number" id="quantity" value="2" />
+                    </div>
+                    <!-- ORDER TOTAL -->
+                    <div class="totals col col-sm-12">
+                      GRO Premium Subscription: <h3>$20/month</h3>
+                      Devices: <h3 id="order-subtotal"></h3>
+                      Total: <h3 id="order-total"></h3>
+                    </div>
+                    <!--  PAYMENT FORM  -->
+                    <div class="col col-sm-12">
+                      <form id="subscribe-form">
+                        <h1>Pay</h1>
+                        <label>
+                          Full name
+                          <input type="text" id="name" value="Jenny Rosen" />
+                        </label>
+
+                        <label>
+                          Email
+                          <input id="email" type="text" placeholder="Email address" value="" required />
+                        </label>
+
+                        <label>
+                          Password
+                          <input id="password" type="password" placeholder="Password" value="" required />
+                        </label>
+
+                        <div id="card-element">
+                          <!-- the card element will be mounted here -->
+                        </div>
+
+                        <button type="submit">
+                          Subscribe
+                        </button>
+                        <div id="messages"></div>
+                      </form>
+                    </div>
                   </div>
                 </div>
+
               </div>
-            </form>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col form-group m-4">
-            <h1>Subscription Plan</h1>
-            <h3>GRO Premium</h3>
-            <ul>
-              <li>Unlimited data retention and access</li>
-              <li>Unlimited data monitors</li>
-              <li>Unlimited monthly alerts</li>
-              <li>Email and phone alert options</li>
-            </ul>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col col-sm-12 col-md-4 col-lg-6">
-            <!--  PAYMENT FORM  -->
-            <!-- <p> Try the successful test card: <span>4242424242424242</span>. </p>
-            <p> Try the test card that requires SCA: <span>4000002500003155</span>. </p>
-            <p> Use any <i>future</i> expiry date, CVC, and 5 digit postal code. </p> -->
-            <form id="subscribe-form">
-              <h1>Payment Details</h1>
-              <label>
-                Full name
-                <input type="text" id="name" value="Jenny Rosen" />
-              </label>
-
-              <label>
-                Email
-                <input id="email" type="text" placeholder="Email address" value="" required />
-              </label>
-
-              <label>
-                Password
-                <input id="password" type="password" placeholder="Password" value="" required />
-              </label>
-
-              <div id="card-element">
-                <!-- the card element will be mounted here -->
-              </div>
-
-              <button type="submit">
-                Subscribe
-              </button>
-              <div id="messages"></div>
-            </form>
+            </div>
           </div>
         </div>
       </div>
     </main>
   </section>
   <script>
-    // TODO: reduce the calls to /config for this script (preferably to one call)
+    // UNIT_PRICE is the price of the GRO-01 Monitor. 
+    const UNIT_PRICE = 150
+
+    // create a stripe instance for this page to use
+    // by passing our publishable key to stripe.
     const stripe = Stripe(
-      // TODO: get publishable key from the /config endpoint
+    // TODO: insert publishable key server side during template render
       'pk_test_51M47p8GxdKKUSt0mxoblFkBylys8NBvodGcmw0iEqYnElX0BHjyJVC5Flq9ht5uICN2HU0jqiDlmeQbEBYdYuktO00OnO3K2jW'
     );
+
+    // initialize stripe elements once we have our token loaded in 
     const elements = stripe.elements();
 
+    // create the card element and mount it to the DOM 
     let cardElement;
     cardElement = elements.create('card');
     cardElement.mount('#card-element');
@@ -121,7 +141,7 @@
           priceId: priceId,
         }),
       })
-        .then((response) => response.json())
+        .then((res) => res.json())
         .then((data) => {
           console.log("create subscription: ", data);
           window.sessionStorage.setItem('subscriptionId', data.subscriptionId);
@@ -134,7 +154,8 @@
     }
 
     // createCustomer attempts to create a customer to attach the subscription to.
-    // if this succeeds, it creates them a valid user in our system.
+    // if this succeeds, it creates them a valid user in our system
+    // and creates a cookie of the Stripe customer ID.
     const createCustomer = (email, password) => {
       return fetch('/create-customer', {
         method: 'POST',
@@ -153,6 +174,8 @@
         })
     }
 
+    // handleConfirmPayment charges the card for the subscription
+    // we setup in createSubscription
     const handleConfirmPayment = (name, clientSecret, cardElement) => {
       // Create payment method and confirm payment intent. This confirms the subscription intent
       return stripe.confirmCardPayment(clientSecret, {
@@ -162,36 +185,39 @@
             name: name,
           },
         }
-      }).then((res) => {
-        console.log('confirmCardPayment response: ', res)
-        return res
       })
+        .then((res) => {
+          console.log('confirmCardPayment response: ', res)
+          return res
+        })
         .catch(err => console.error('handleConfirmPayment failed:', err))
     }
 
-    // helper method for displaying a status message.
     const setMessage = (message) => {
       const messageDiv = document.querySelector('#messages');
       messageDiv.innerHTML += "<br>" + message;
     }
 
-    // This sample only supports a Subscription with payment
-    // upfront. If you offer a trial on your subscription, then
-    // instead of confirming the subscription's latest_invoice's
-    // payment_intent. You'll use stripe.confirmCardSetup to confirm
-    // the subscription's pending_setup_intent.
-    // See https://stripe.com/docs/billing/subscriptions/trials
+    // updateTotal calculates the order subtotal and total
+    // and updates the DOM to show their current balances
+    const updateTotal = () => {
+      let totalDiv = document.getElementById('order-total');
+      let subtotalDiv = document.querySelector('#order-subtotal');
+      let quantity = document.getElementById('quantity').value;
 
-    // Payment info collection and confirmation
-    // When the submit button is pressed, attempt to confirm the payment intent
-    // with the information input into the card element form.
-    // - handle payment errors by displaying an alert. The customer can update
-    //   the payment information and try again
-    // - Stripe Elements automatically handles next actions like 3DSecure that are required for SCA
-    // - Complete the subscription flow when the payment succeeds
+      let orderSubtotal = quantity * UNIT_PRICE
+      let orderTotal = (quantity * UNIT_PRICE) + 20 // subscription factored in
+
+      subtotalDiv.innerHTML = `$${orderSubtotal}`
+      totalDiv.innerHTML = `$${orderTotal}`
+    }
+
+    // setup the proper total for the initial quantity of 2 monitors
+    const numberSelector = document.querySelector('#quantity');
+    numberSelector.addEventListener('change', updateTotal);
+    updateTotal() // call once at load so it's present on first view.
 
     // NB: process quantity client side, but pricing _server_ side to prevent price manipulation.
-
     const subform = document.querySelector('#subscribe-form');
     subform.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -202,9 +228,11 @@
       const password = document.getElementById('password').value;
       const quantity = document.getElementById('quantity').value;
 
+      // step 1: create customer with email and password
       createCustomer(email, password)
         .then(cust => {
           console.log("subform: created customer: ", cust)
+          // step 2: create subscription with customer ID
           createSubscription(priceID)
             .then((sub) => {
               console.log('susbform: created subscription: ', sub)
@@ -214,23 +242,26 @@
               const subscriptionId = window.sessionStorage.getItem('subscriptionId');
               const clientSecret = window.sessionStorage.getItem('clientSecret');
 
+              // step 3: confirm subscription payment 
               handleConfirmPayment(name, clientSecret, cardElement)
                 .then((res) => {
                   console.log('handleConfirmPayment after subscription: ', res)
 
-                  // charge them for monitors if they ordered more than zero
+                  // charge them for monitors if they ordered more than 0
                   if (quantity > 0) {
+                    // we must get a new token for this cardElement
+                    // since they're one-time use
                     stripe.createToken(cardElement)
                       .then((res) => {
-                        console.log("createToken: res: ", res)
                         if (res.error) {
                           setMessage('failed to charge card for product')
                           console.log('failed to charge: ', res.error)
                           return
                         }
 
+                        // total amount is calculated server-side
+                        // to prevent price manipulation.
                         const token = res.token.id
-                        
                         return fetch('/charge', {
                           method: 'POST',
                           headers: {
@@ -247,15 +278,10 @@
                             return data
                           })
                       })
-
                   }
-
-
                 })
-
             })
         })
-
     });
   </script>
 </body>
