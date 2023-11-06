@@ -1,17 +1,44 @@
-version: '2'
+version: '3.8'
 
 services:
-  postgresql:
-    image: docker.io/bitnami/postgresql:14
-    ports:
-      - '5432:5432'
+  app:
+    image: golang:1.20
     volumes:
-      - 'postgresql_data:/bitnami/postgresql'
+      - .:/go/src/app/
+    working_dir: /go/src/app/
+    command: go run app.go
+    ports:
+      - "8080:8080"
     environment:
-      - POSTGRESQL_USERNAME=grow
-      - POSTGRESQL_PASSWORD=grow
-      - POSTGRESQL_DATABASE=grow
+      - DB_HOST=db
+      - DB_USER=grow
+      - DB_PASSWORD=grow
+      - DB_NAME=growalert
+      - VM_URL=http://victoriametrics:8428
+    depends_on:
+      - db
+      - victoriametrics
+
+  db:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=grow
+      - POSTGRES_PASSWORD=grow
+      - POSTGRES_DB=growalert
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  victoriametrics:
+    image: victoriametrics/victoria-metrics
+    command:
+      - '-storageDataPath=/victoria-metrics-data'
+      - '-retentionPeriod=12'
+    ports:
+      - "8428:8428"
+    volumes:
+      - victoria_metrics_data:/victoria-metrics-data
 
 volumes:
-  postgresql_data:
-    driver: local
+  postgres_data:
+  victoria_metrics_data:
+

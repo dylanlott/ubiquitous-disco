@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -60,11 +61,22 @@ type Event struct {
 // We are going to rely on Gorm for this project, we're considering
 // this a dependency now.
 func New() *gorm.DB {
-	dsn := os.Getenv("POSTGRES_DSN")
+	// Get environment variables
+	dbHost := os.Getenv("DB_HOST")
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+
+	// Format the connection string
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
+		dbHost, dbUser, dbPass, dbName)
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("failed to get pg connection: %v", err)
 	}
+
 	db.AutoMigrate(&Monitor{}, &User{}, &Product{}, &Event{})
+
 	return db
 }
